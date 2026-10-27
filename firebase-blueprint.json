@@ -1,0 +1,314 @@
+{
+  "entities": {
+    "WeddingEvent": {
+      "title": "WeddingEvent",
+      "description": "Configuration and schedule details for the wedding invitation.",
+      "type": "object",
+      "properties": {
+        "eventId": {
+          "type": "string",
+          "description": "Identifier for the wedding event (always main_wedding).",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "coupleNames": {
+          "type": "string",
+          "description": "Display string for the couple names.",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "brideName": {
+          "type": "string",
+          "description": "First or full name of the bride.",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "groomName": {
+          "type": "string",
+          "description": "First or full name of the groom.",
+          "minLength": 1,
+          "maxLength": 60
+        },
+        "weddingDate": {
+          "type": "string",
+          "description": "Formatted or ISO wedding date.",
+          "minLength": 4,
+          "maxLength": 40
+        },
+        "dayOfWeek": {
+          "type": "string",
+          "description": "Day of the week for the ceremony.",
+          "minLength": 3,
+          "maxLength": 30
+        },
+        "ceremonyTime": {
+          "type": "string",
+          "description": "Time of the main ceremony.",
+          "minLength": 3,
+          "maxLength": 40
+        },
+        "venueName": {
+          "type": "string",
+          "description": "Name of the wedding venue.",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "venueAddress": {
+          "type": "string",
+          "description": "Full street address of the venue.",
+          "minLength": 5,
+          "maxLength": 250
+        },
+        "city": {
+          "type": "string",
+          "description": "City and state of the venue.",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "eventType": {
+          "type": "string",
+          "description": "Type of celebration (e.g., Muhurtham & Grand Reception).",
+          "minLength": 2,
+          "maxLength": 80
+        },
+        "mapUrl": {
+          "type": "string",
+          "description": "Optional Google Maps URL for venue directions.",
+          "minLength": 0,
+          "maxLength": 500
+        },
+        "coverSubtitle": {
+          "type": "string",
+          "description": "Short welcoming sentence on the invitation cover.",
+          "minLength": 5,
+          "maxLength": 200
+        },
+        "welcomeHeading": {
+          "type": "string",
+          "description": "Heading on Screen 2 welcome page.",
+          "minLength": 3,
+          "maxLength": 120
+        },
+        "welcomeMessage": {
+          "type": "string",
+          "description": "Heartfelt welcome message from the couple and family.",
+          "minLength": 10,
+          "maxLength": 800
+        },
+        "familyMessage": {
+          "type": "string",
+          "description": "Short note from the family on the event details page.",
+          "minLength": 5,
+          "maxLength": 400
+        },
+        "familySignOff": {
+          "type": "string",
+          "description": "Family sign-off line.",
+          "minLength": 2,
+          "maxLength": 120
+        },
+        "maxGuestsPerRsvp": {
+          "type": "integer",
+          "description": "Maximum number of guests allowed per single RSVP submission."
+        },
+        "schedule": {
+          "type": "array",
+          "description": "Ordered list of wedding itinerary events (up to 10 items)."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of the last configuration update."
+        },
+        "updatedBy": {
+          "type": "string",
+          "description": "UID of the admin who updated the event.",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      },
+      "required": [
+        "eventId",
+        "coupleNames",
+        "brideName",
+        "groomName",
+        "weddingDate",
+        "dayOfWeek",
+        "ceremonyTime",
+        "venueName",
+        "venueAddress",
+        "city",
+        "eventType",
+        "mapUrl",
+        "coverSubtitle",
+        "welcomeHeading",
+        "welcomeMessage",
+        "familyMessage",
+        "familySignOff",
+        "maxGuestsPerRsvp",
+        "schedule",
+        "updatedAt",
+        "updatedBy"
+      ]
+    },
+    "GuestInvitation": {
+      "title": "GuestInvitation",
+      "description": "Public-safe invitation token record without PII phone numbers.",
+      "type": "object",
+      "properties": {
+        "inviteToken": {
+          "type": "string",
+          "description": "Unpredictable invitation token matching document ID.",
+          "minLength": 6,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "description": "Parent wedding event ID (main_wedding).",
+          "minLength": 4,
+          "maxLength": 64
+        },
+        "guestDisplayName": {
+          "type": "string",
+          "description": "Name of the invited guest or family shown on the cover.",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "maxAllowedGuests": {
+          "type": "integer",
+          "description": "Maximum allowed attendees for this specific invitation."
+        },
+        "status": {
+          "type": "string",
+          "description": "Current response status of the invitation.",
+          "enum": ["pending", "confirmed", "declined"]
+        },
+        "createdBy": {
+          "type": "string",
+          "description": "UID of the admin who generated the invitation.",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when invitation was created."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp when invitation was last updated."
+        }
+      },
+      "required": [
+        "inviteToken",
+        "eventId",
+        "guestDisplayName",
+        "maxAllowedGuests",
+        "status",
+        "createdBy",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "RsvpResponse": {
+      "title": "RsvpResponse",
+      "description": "Isolated guest RSVP record containing private mobile number and meal preference.",
+      "type": "object",
+      "properties": {
+        "rsvpId": {
+          "type": "string",
+          "description": "Document ID of the RSVP response.",
+          "minLength": 6,
+          "maxLength": 128,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "eventId": {
+          "type": "string",
+          "description": "Associated wedding event ID (main_wedding).",
+          "minLength": 4,
+          "maxLength": 64
+        },
+        "inviteToken": {
+          "type": "string",
+          "description": "Invitation token used or 'public_link'.",
+          "minLength": 4,
+          "maxLength": 64,
+          "pattern": "^[a-zA-Z0-9_\\-]+$"
+        },
+        "fullName": {
+          "type": "string",
+          "description": "Full name of the responding guest.",
+          "minLength": 2,
+          "maxLength": 100
+        },
+        "mobileNumber": {
+          "type": "string",
+          "description": "Validated mobile phone number of the guest (PII - admin only read).",
+          "minLength": 10,
+          "maxLength": 20,
+          "pattern": "^[0-9+\\-\\s()]{10,20}$"
+        },
+        "attendanceStatus": {
+          "type": "string",
+          "description": "Whether the guest will attend or decline.",
+          "enum": ["confirmed", "declined"]
+        },
+        "attendeeCount": {
+          "type": "integer",
+          "description": "Number of attending guests (0 if declined, 1..15 if confirmed)."
+        },
+        "mealPreference": {
+          "type": "string",
+          "description": "Dietary preference (vegetarian, non-vegetarian, or none if declined).",
+          "enum": ["vegetarian", "non-vegetarian", "none"]
+        },
+        "messageToFamily": {
+          "type": "string",
+          "description": "Optional warm wishes or note from the guest to the family.",
+          "minLength": 0,
+          "maxLength": 400
+        },
+        "submittedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of initial RSVP submission."
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Server timestamp of latest update."
+        }
+      },
+      "required": [
+        "rsvpId",
+        "eventId",
+        "inviteToken",
+        "fullName",
+        "mobileNumber",
+        "attendanceStatus",
+        "attendeeCount",
+        "mealPreference",
+        "messageToFamily",
+        "submittedAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/events/{eventId}": {
+      "schema": { "$ref": "#/entities/WeddingEvent" },
+      "description": "Publicly readable wedding event details and schedule; writable only by verified admin."
+    },
+    "/invitations/{inviteToken}": {
+      "schema": { "$ref": "#/entities/GuestInvitation" },
+      "description": "Token-addressable invitation metadata without PII; individual get allowed by token, list/create/delete restricted to verified admin."
+    },
+    "/rsvps/{rsvpId}": {
+      "schema": { "$ref": "#/entities/RsvpResponse" },
+      "description": "Guest RSVP submissions containing PII mobile numbers; public create with strict schema validation, read/update/delete restricted strictly to verified admin."
+    }
+  }
+}

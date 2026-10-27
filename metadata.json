@@ -1,0 +1,6 @@
+{
+  "name": "I-Guest — Smart Wedding Guest & RSVP Management",
+  "description": "Mobile-first Indian wedding digital invitation and real-time RSVP guest management platform with white-and-orange glassmorphism design and host analytics dashboard.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

@@ -1,0 +1,218 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net: Default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Global Primitives
+    function isValidId(id) {
+      return id is string && id.size() >= 4 && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    // Bootstrapped Verified Admin check (prevents unverified email spoofing)
+    function isVerifiedAdmin() {
+      return isSignedIn() &&
+        request.auth.token.email_verified == true &&
+        request.auth.token.email == 'kshivanshu35@gmail.com';
+    }
+
+    // Blueprint Validation Helpers (Anti-Update-Gap)
+    function isValidWeddingEvent(data) {
+      return data.keys().hasAll([
+          'eventId', 'coupleNames', 'brideName', 'groomName',
+          'weddingDate', 'dayOfWeek', 'ceremonyTime',
+          'venueName', 'venueAddress', 'city', 'eventType',
+          'mapUrl', 'coverSubtitle', 'welcomeHeading', 'welcomeMessage',
+          'familyMessage', 'familySignOff', 'maxGuestsPerRsvp',
+          'schedule', 'updatedAt', 'updatedBy'
+        ]) &&
+        data.keys().hasOnly([
+          'eventId', 'coupleNames', 'brideName', 'groomName',
+          'weddingDate', 'dayOfWeek', 'ceremonyTime',
+          'venueName', 'venueAddress', 'city', 'eventType',
+          'mapUrl', 'coverSubtitle', 'welcomeHeading', 'welcomeMessage',
+          'familyMessage', 'familySignOff', 'maxGuestsPerRsvp',
+          'schedule', 'updatedAt', 'updatedBy'
+        ]) &&
+        data.eventId is string && data.eventId.size() >= 4 && data.eventId.size() <= 64 && data.eventId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.coupleNames is string && data.coupleNames.size() >= 2 && data.coupleNames.size() <= 120 &&
+        data.brideName is string && data.brideName.size() >= 1 && data.brideName.size() <= 60 &&
+        data.groomName is string && data.groomName.size() >= 1 && data.groomName.size() <= 60 &&
+        data.weddingDate is string && data.weddingDate.size() >= 4 && data.weddingDate.size() <= 40 &&
+        data.dayOfWeek is string && data.dayOfWeek.size() >= 3 && data.dayOfWeek.size() <= 30 &&
+        data.ceremonyTime is string && data.ceremonyTime.size() >= 3 && data.ceremonyTime.size() <= 40 &&
+        data.venueName is string && data.venueName.size() >= 2 && data.venueName.size() <= 120 &&
+        data.venueAddress is string && data.venueAddress.size() >= 5 && data.venueAddress.size() <= 250 &&
+        data.city is string && data.city.size() >= 2 && data.city.size() <= 80 &&
+        data.eventType is string && data.eventType.size() >= 2 && data.eventType.size() <= 80 &&
+        data.mapUrl is string && data.mapUrl.size() <= 500 &&
+        data.coverSubtitle is string && data.coverSubtitle.size() >= 5 && data.coverSubtitle.size() <= 200 &&
+        data.welcomeHeading is string && data.welcomeHeading.size() >= 3 && data.welcomeHeading.size() <= 120 &&
+        data.welcomeMessage is string && data.welcomeMessage.size() >= 10 && data.welcomeMessage.size() <= 800 &&
+        data.familyMessage is string && data.familyMessage.size() >= 5 && data.familyMessage.size() <= 400 &&
+        data.familySignOff is string && data.familySignOff.size() >= 2 && data.familySignOff.size() <= 120 &&
+        data.maxGuestsPerRsvp is int && data.maxGuestsPerRsvp >= 1 && data.maxGuestsPerRsvp <= 15 &&
+        data.schedule is list && data.schedule.size() >= 1 && data.schedule.size() <= 10 &&
+        data.schedule[0] is map &&
+        data.updatedBy is string && data.updatedBy.size() >= 1 && data.updatedBy.size() <= 128 &&
+        data.updatedBy == request.auth.uid &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidInvitation(data) {
+      return data.keys().hasAll([
+          'inviteToken', 'eventId', 'guestDisplayName',
+          'maxAllowedGuests', 'status', 'createdBy', 'createdAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'inviteToken', 'eventId', 'guestDisplayName',
+          'maxAllowedGuests', 'status', 'createdBy', 'createdAt', 'updatedAt'
+        ]) &&
+        data.inviteToken is string && data.inviteToken.size() >= 6 && data.inviteToken.size() <= 64 && data.inviteToken.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.eventId is string && data.eventId == 'main_wedding' &&
+        data.guestDisplayName is string && data.guestDisplayName.size() >= 1 && data.guestDisplayName.size() <= 100 &&
+        data.maxAllowedGuests is int && data.maxAllowedGuests >= 1 && data.maxAllowedGuests <= 15 &&
+        data.status is string && data.status in ['pending', 'confirmed', 'declined'] &&
+        data.createdBy is string && data.createdBy.size() >= 1 && data.createdBy.size() <= 128 &&
+        data.createdAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    function isValidRsvp(data) {
+      return data.keys().hasAll([
+          'rsvpId', 'eventId', 'inviteToken', 'fullName', 'mobileNumber',
+          'attendanceStatus', 'attendeeCount', 'mealPreference',
+          'messageToFamily', 'submittedAt', 'updatedAt'
+        ]) &&
+        data.keys().hasOnly([
+          'rsvpId', 'eventId', 'inviteToken', 'fullName', 'mobileNumber',
+          'attendanceStatus', 'attendeeCount', 'mealPreference',
+          'messageToFamily', 'submittedAt', 'updatedAt'
+        ]) &&
+        data.rsvpId is string && data.rsvpId.size() >= 6 && data.rsvpId.size() <= 128 && data.rsvpId.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.eventId is string && data.eventId == 'main_wedding' &&
+        data.inviteToken is string && data.inviteToken.size() >= 4 && data.inviteToken.size() <= 64 && data.inviteToken.matches('^[a-zA-Z0-9_\\-]+$') &&
+        data.fullName is string && data.fullName.size() >= 2 && data.fullName.size() <= 100 &&
+        data.mobileNumber is string && data.mobileNumber.size() >= 10 && data.mobileNumber.size() <= 20 && data.mobileNumber.matches('^[0-9+\\-\\s()]{10,20}$') &&
+        data.attendanceStatus is string && data.attendanceStatus in ['confirmed', 'declined'] &&
+        data.attendeeCount is int &&
+        (
+          (data.attendanceStatus == 'confirmed' && data.attendeeCount >= 1 && data.attendeeCount <= 15 && data.mealPreference is string && data.mealPreference in ['vegetarian', 'non-vegetarian']) ||
+          (data.attendanceStatus == 'declined' && data.attendeeCount == 0 && data.mealPreference is string && data.mealPreference == 'none')
+        ) &&
+        data.messageToFamily is string && data.messageToFamily.size() <= 400 &&
+        data.submittedAt is timestamp &&
+        data.updatedAt is timestamp;
+    }
+
+    // 1. Wedding Event Configuration Collection (/events/{eventId})
+    match /events/{eventId} {
+      allow get: if isValidId(eventId) && eventId == 'main_wedding';
+      allow list: if false;
+
+      allow create: if isVerifiedAdmin() &&
+        isValidId(eventId) &&
+        eventId == 'main_wedding' &&
+        isValidWeddingEvent(incoming()) &&
+        incoming().eventId == eventId &&
+        incoming().updatedAt == request.time;
+
+      allow update: if isVerifiedAdmin() &&
+        isValidId(eventId) &&
+        eventId == 'main_wedding' &&
+        isValidWeddingEvent(incoming()) &&
+        incoming().eventId == existing().eventId &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'coupleNames', 'brideName', 'groomName',
+          'weddingDate', 'dayOfWeek', 'ceremonyTime',
+          'venueName', 'venueAddress', 'city', 'eventType',
+          'mapUrl', 'coverSubtitle', 'welcomeHeading', 'welcomeMessage',
+          'familyMessage', 'familySignOff', 'maxGuestsPerRsvp',
+          'schedule', 'updatedAt', 'updatedBy'
+        ]);
+
+      allow delete: if false;
+    }
+
+    // 2. Guest Invitations Collection (/invitations/{inviteToken}) - Split Collection (No PII)
+    match /invitations/{inviteToken} {
+      // Public guests can look up their specific unpredictable token; list is strictly admin-only
+      allow get: if isValidId(inviteToken);
+      allow list: if isVerifiedAdmin() && resource.data.eventId == 'main_wedding';
+
+      allow create: if isVerifiedAdmin() &&
+        isValidId(inviteToken) &&
+        isValidInvitation(incoming()) &&
+        incoming().inviteToken == inviteToken &&
+        incoming().createdBy == request.auth.uid &&
+        incoming().createdAt == request.time &&
+        incoming().updatedAt == request.time &&
+        exists(/databases/$(database)/documents/events/$(incoming().eventId));
+
+      allow update: if isValidId(inviteToken) &&
+        isValidInvitation(incoming()) &&
+        incoming().inviteToken == existing().inviteToken &&
+        incoming().eventId == existing().eventId &&
+        incoming().createdBy == existing().createdBy &&
+        incoming().createdAt == existing().createdAt &&
+        incoming().updatedAt == request.time &&
+        (
+          isVerifiedAdmin() ||
+          (
+            // Action: Public Guest Responds to Pending Token
+            existing().status == 'pending' &&
+            incoming().status in ['confirmed', 'declined'] &&
+            incoming().diff(existing()).affectedKeys().hasOnly(['status', 'updatedAt'])
+          )
+        );
+
+      allow delete: if isVerifiedAdmin() && isValidId(inviteToken);
+    }
+
+    // 3. RSVP Responses Collection (/rsvps/{rsvpId}) - Contains Isolated Guest PII (mobileNumber)
+    match /rsvps/{rsvpId} {
+      // Strictly isolated PII: Only verified admin can read or query guest RSVP records
+      allow get: if isVerifiedAdmin() && isValidId(rsvpId);
+      allow list: if isVerifiedAdmin() && resource.data.eventId == 'main_wedding';
+
+      // Public guests can submit a new RSVP record with strict schema & server timestamp validation
+      allow create: if isValidId(rsvpId) &&
+        isValidRsvp(incoming()) &&
+        incoming().rsvpId == rsvpId &&
+        incoming().submittedAt == request.time &&
+        incoming().updatedAt == request.time;
+
+      // Only verified admin can edit an existing RSVP response
+      allow update: if isVerifiedAdmin() &&
+        isValidId(rsvpId) &&
+        isValidRsvp(incoming()) &&
+        incoming().rsvpId == existing().rsvpId &&
+        incoming().eventId == existing().eventId &&
+        incoming().inviteToken == existing().inviteToken &&
+        incoming().submittedAt == existing().submittedAt &&
+        incoming().updatedAt == request.time &&
+        incoming().diff(existing()).affectedKeys().hasOnly([
+          'fullName', 'mobileNumber', 'attendanceStatus',
+          'attendeeCount', 'mealPreference', 'messageToFamily', 'updatedAt'
+        ]);
+
+      allow delete: if isVerifiedAdmin() && isValidId(rsvpId);
+    }
+  }
+}
